@@ -1,6 +1,6 @@
 from datetime import datetime
 from models import Expenditure, Budget
-from app import db
+from budgety import db
 
 ########## THIS FILE CONTAINS WIDELY USED FUNCTIONS ###########
 

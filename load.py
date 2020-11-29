@@ -2,8 +2,8 @@
 
 from sqlalchemy import func
 from datetime import datetime
-from model import User, Expenditure, Budget, Category
-from server import db, app
+from models import User, Expenditure, Budget, Category
+from budgety import db, app
 import os
 
 user_file        = "data/users.csv"

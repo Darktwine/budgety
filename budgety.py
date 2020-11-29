@@ -339,7 +339,7 @@ def expenditure_types_data():
     food_expenditures, avg_food                   = expenditure_total_amount_and_avg(3, id, thirty_days_past, today)
     online_purchase_expenditures, avg_online      = expenditure_total_amount_and_avg(1, id, thirty_days_past, today)
 
-    return jsonfiy({
+    return jsonify({
         'expenditures': [
             {
                 "value": travel_expenditures,

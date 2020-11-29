@@ -1,4 +1,4 @@
-from app import db
+from budgety import db
 
 class User(db.Model):
     """ Web app's user """
