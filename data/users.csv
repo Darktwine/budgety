@@ -1,0 +1,6 @@
+userid (PK),name,email,password
+1,Jotaro Kujo,jotaro@kujo.com,StarPlatinum
+2,Josuke Higashikata,josuke@higashikat.com,CrazyDiamond
+3,Giorno Giovanna,giorno@giovanna.com,GoldExperience
+4,Jolyne Cujoh,jolyne@cujo.com,StoneFree
+5,Trish Una,trish@una.com,SpiceGirl

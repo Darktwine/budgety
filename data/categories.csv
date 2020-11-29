@@ -1,0 +1,6 @@
+category-id (PK),category
+1,Online Purchase
+2,Travel
+3,Food
+4,Clothing
+5,Entertainment

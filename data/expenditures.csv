@@ -1,0 +1,11 @@
+expenditure-id (PK),category-id (FK),price,date-of-expenditure,expenditure-userid (FK),location-bought,description
+1,4,85.95,2020-11-07,1,Amazon,Marine biology book
+2,3,150.75,2020-11-08,1,Whole Foods,Meat and vegetables
+3,3,100,2020-11-09,3,Food Emporium,Cheap vodka and rum
+4,2,570.5,2020-11-20,3,JetBlue,Plane ticket to Hawaii
+5,5,125,2020-11-23,2,Century Theater,V for Vendetta tickets
+6,4,210.85,2020-11-25,5,Forever21,Sweaters
+7,4,340,2020-11-18,4,Burlington,NorthFace coat
+8,4,200.25,2020-11-26,1,Old Navy,Cool pants
+9,3,110.75,2020-11-28,1,Key Food,Seafood
+10,3,100,2020-12-02,3,Whole Foods,Groceries for the weekend
