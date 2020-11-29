@@ -41,13 +41,8 @@ def sign_up():
     email    = request.form.get("email")
     password = request.form.get("password")
 
-    print("Name: ", name)
-    print("Email: ", email)
-    print("Password: ", password)
-
     email_login_query = User.query.filter_by(email=email).first()
 
-    #return redirect(url_for('index'))
     # Check if user already exists
     if email_login_query is None:
         new_user          = User()
@@ -64,7 +59,7 @@ def sign_up():
             and_(User.email == email, User.password == password)
         ).first()
         if user_existence_check:
-            flash('A user by this name already exists')
+            flash('This email is already in use.')
             return redirect(url_for("index"))
 
 @app.route('/login-form', methods=["POST"])
@@ -137,14 +132,15 @@ def dashboard(id):
     from models import User, Expenditure, Budget
     from utils import expenditure_total_amount_and_avg, budget_totals, get_dates_for_budget, get_progress, get_budget_per_category, connect_to_db 
 
-    if 'id' in session:
+    logged_in = 'id' in session
+    if logged_in:
         user   = User.query.filter_by(id=id).first()
         ### GENERATE THE USER HASH ###
         APP_ID = os.getenv('APP_ID')
         KEY = os.getenv('SECURE_MODE_KEY')
+        KEY = b'e179017a-62b0-4996-8a38-e91aa9f1'
         MESSAGE = str(user.id)
-        #hash_result = hmac.new(KEY, MESSAGE, hashlib.sha256).hexdigest() 
-        hash_result = ''
+        hash_result = hmac.new(KEY, MESSAGE.encode('utf-8'), hashlib.sha256).hexdigest() 
 
         ####### GET THE USER'S BUDGETS FOR EACH CATEGORY
         cat_1_budget = get_budget_per_category(1, id)
@@ -153,40 +149,38 @@ def dashboard(id):
         cat_4_budget = get_budget_per_category(4, id)
         cat_5_budget = get_budget_per_category(5, id)
 
-        # This is the expenditure object, which contains information about
-        # expenditures specific to the user from the expenditure table in the
-        # database
+        # Get all expenditures for logged-in user.
         expenditures = Expenditure.query.filter_by(expenditure_userid=id).all()
 
-        # Calls the get_dates_for_budget function in utils.py
+
+        # Get the dates for each budget.
         cat_1_start, cat_1_end = get_dates_for_budget(1, id)
         cat_2_start, cat_2_end = get_dates_for_budget(2, id)
         cat_3_start, cat_3_end = get_dates_for_budget(3, id)
         cat_4_start, cat_4_end = get_dates_for_budget(4, id)
         cat_5_start, cat_5_end = get_dates_for_budget(5, id)
 
-        # Strips datetime objects to year, month, day
-        cat_1_start_date = cat_1_start.strftime('%m-%d-%Y')
-        cat_2_start_date = cat_2_start.strftime('%m-%d-%Y')
-        cat_3_start_date = cat_3_start.strftime('%m-%d-%Y')
-        cat_4_start_date = cat_4_start.strftime('%m-%d-%Y')
-        cat_5_start_date = cat_5_start.strftime('%m-%d-%Y')
+        # format datetime objects into "YYYY-MM-DD".
+        cat_1_start_date = cat_1_start.strftime('%Y-%m-%d')
+        cat_2_start_date = cat_2_start.strftime('%Y-%m-%d')
+        cat_3_start_date = cat_3_start.strftime('%Y-%m-%d')
+        cat_4_start_date = cat_4_start.strftime('%Y-%m-%d')
+        cat_5_start_date = cat_5_start.strftime('%Y-%m-%d')
 
-        cat_1_end_date = cat_1_end.strftime('%m-%d-%Y')
-        cat_2_end_date = cat_2_end.strftime('%m-%d-%Y')
-        cat_3_end_date = cat_3_end.strftime('%m-%d-%Y')
-        cat_4_end_date = cat_4_end.strftime('%m-%d-%Y')
-        cat_5_end_date = cat_5_end.strftime('%m-%d-%Y')
+        cat_1_end_date = cat_1_end.strftime('%Y-%m-%d')
+        cat_2_end_date = cat_2_end.strftime('%Y-%m-%d')
+        cat_3_end_date = cat_3_end.strftime('%Y-%m-%d')
+        cat_4_end_date = cat_4_end.strftime('%Y-%m-%d')
+        cat_5_end_date = cat_5_end.strftime('%Y-%m-%d')
 
         ########### TOTAL PRICE AND AVERAGE SPENT ###########
 
         # Unpacking the total price and average spent
         total_online_purchase_price, avg_online_expenditures      = expenditure_total_amount_and_avg(1, id, cat_1_start_date, cat_1_end_date)
-        total_food_price, avg_food_expenditures                   = expenditure_total_amount_and_avg(3, id, cat_3_start_date, cat_3_end_date)
         total_travel_price, avg_travel_expenditures               = expenditure_total_amount_and_avg(2, id, cat_2_start_date, cat_2_end_date)
+        total_food_price, avg_food_expenditures                   = expenditure_total_amount_and_avg(3, id, cat_3_start_date, cat_3_end_date)
         total_clothing_price, avg_clothing_expenditures           = expenditure_total_amount_and_avg(4, id, cat_4_start_date, cat_4_end_date)
         total_entertainment_price, avg_entertainment_expenditures = expenditure_total_amount_and_avg(5, id, cat_5_start_date, cat_5_end_date)
-
 
         total_price = (
             total_food_price + total_clothing_price +
@@ -196,7 +190,7 @@ def dashboard(id):
 
         ########### BUDGET ###########
 
-        # Calling the function for each of the expenditure categories
+        # Get diff of (budget's total - amount spent).
         online_budget_minus_expenses        = budget_totals(1, id, total_online_purchase_price)
         travel_budget_minus_expenses        = budget_totals(2, id, total_travel_price)
         food_budget_minus_expenses          = budget_totals(3, id, total_food_price)
@@ -288,44 +282,43 @@ def budget_types_data():
     today            = datetime.today().strftime('%Y-%m-%d')
     thirty_days_past = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
 
-    if 'id' in session:
+    logged_in = 'id' in session
+    if logged_in:
         total_food_price, avg_food_expenditures                   = expenditure_total_amount_and_avg(3, id, thirty_days_past, today)
         total_clothing_price, avg_clothing_expenditures           = expenditure_total_amount_and_avg(4, id, thirty_days_past, today)
         total_entertainment_price, avg_entertainment_expenditures = expenditure_total_amount_and_avg(5, id, thirty_days_past, today)
         total_travel_price, avg_travel_expenditures               = expenditure_total_amount_and_avg(2, id, thirty_days_past, today)
         total_online_purchase_price, avg_online_expenditures      = expenditure_total_amount_and_avg(1, id, thirty_days_past, today)
 
-    data_dict = {
+    return jsonify({
         "labels": ["Food", "Clothing", "Entertainment", "Travel", "Online Purchases"],
         "datasets": [
             {
                 "label": "Total Spent",
-                "fillColor": "#F37257",
-                "strokeColor": "#F37257",
-                "pointColor": "#F37257",
+                "fillColor": "#6886C5",
+                "strokeColor": "#6886C5",
+                "pointColor": "#6886C5",
                 "pointStrokeColor": "#fff",
                 "pointHighlightFill": "#fff",
-                "pointHighlightStroke": "#F37257",
+                "pointHighlightStroke": "#6886C5",
                 "data": [total_food_price, total_clothing_price, total_entertainment_price, total_travel_price, total_online_purchase_price]
             },
             {
                 "label": "Average",
-                "fillColor": "#AFC1CC",
-                "strokeColor": "#AFC1CC",
-                "pointColor": "#AFC1CC",
+                "fillColor": "#FFE0AC",
+                "strokeColor": "#FFE0AC",
+                "pointColor": "#FFE0AC",
                 "pointStrokeColor": "#fff",
                 "pointHighlightFill": "#fff",
-                "pointHighlightStroke": "#AFC1CC",
+                "pointHighlightStroke": "#FFE0AC",
                 "data": [avg_food_expenditures, avg_clothing_expenditures, avg_entertainment_expenditures, avg_travel_expenditures, avg_online_expenditures]
             }
         ]
-    }
-
-    return jsonify(data_dict)
+    })
 
 @app.route('/expenditure-types.json')
 def expenditure_types_data():
-    """ Return data about expenditures to the donut chart """
+    """ Return data about expenditures to the pie chart """
 
     from utils import expenditure_total_amount_and_avg, budget_totals, get_dates_for_budget, get_progress, get_budget_per_category, connect_to_db 
 
@@ -343,32 +336,32 @@ def expenditure_types_data():
         'expenditures': [
             {
                 "value": travel_expenditures,
-                "color": "#F4D27A",
-                "highlight": "#963019",
+                "color": "#385170",
+                "highlight": "#2E425C",
                 "label": "Travel"
             },
             {
                 "value": entertainment_expenditures,
-                "color": "#517281",
-                "highlight": "#963019",
+                "color": "#E2C275",
+                "highlight": "#BEA362",
                 "label": "Entertainment"
             },
             {
                 "value": clothing_expenditures,
-                "color": "#AFC1CC",
-                "highlight": "#963019",
+                "color": "#F0B7A4",
+                "highlight": "#BE9182",
                 "label": "Clothing"
             },
             {
                 "value": food_expenditures,
-                "color": "#F37257",
-                "highlight": "#963019",
+                "color": "#A4D4AE",
+                "highlight": "#8AB293",
                 "label": "Food"
             },
             {
                 "value": online_purchase_expenditures,
-                "color": "#F68D5C",
-                "highlight": "#963019",
+                "color": "#BE97DC",
+                "highlight": "#9576AC",
                 "label": "Online Purchase"
             }
         ]
