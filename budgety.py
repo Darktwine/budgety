@@ -15,18 +15,17 @@ from password_verification import hash_pw, check_pw
 # APP SETUP
 ##########################################
 
-app                     = Flask(__name__)
-app.jinja_env.undefined = StrictUndefined
+database = 'sqlite:////tmp/budget-tracking.db'
+
 app                     = Flask(__name__, instance_relative_config=True)
+app.config['SQLALCHEMY_DATABASE_URI'] = database
+app.config['SQLALCHEMY_ECHO'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.jinja_env.undefined = StrictUndefined
 app.secret_key          = os.getenv('SECRET_KEY', '9a9fa6aec622fdcaddc3a53c3311da7a5a3d30d5efc6c7a7')
 
 db     = SQLAlchemy(app)
-db.app = app
-
-database = 'sqlite:////tmp/budget-tracking.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = database
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.app = app
 db.init_app(app)
 
@@ -210,6 +209,7 @@ def dashboard(id):
             email        = user.email,
             expenditures = expenditures,
             id           = id,
+
             total_food_price                    = total_food_price,
             total_travel_price                  = total_travel_price,
             total_clothing_price                = total_clothing_price,
@@ -428,7 +428,6 @@ def add_budget():
         'category_progress': category_progress
     })
 
-
 @app.route('/add-expenditure-to-db', methods=["POST"])
 def add_expenditure():
     """ Add new expenditure to the database """
@@ -502,10 +501,10 @@ def remove_expenditure(id):
 
 if __name__ == "__main__":
 
-    #connect_to_db(app, spent_database)
+    database = 'sqlite:////tmp/budget-tracking.db'
     app.config['SQLALCHEMY_DATABASE_URI'] = database
     app.config['SQLALCHEMY_ECHO'] = True
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
     db.init_app(app)
 

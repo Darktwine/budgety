@@ -7,10 +7,12 @@ from budgety import db
 def expenditure_total_amount_and_avg(category_id, id, start, end):
     """ Calculate the total amount and avg spent in one particular category """
 
-    # List of expenditure objects
+    # List of expenditure objects for given user and category within given period.
     expenditures = Expenditure.query.filter_by(
-        category_id=category_id, expenditure_userid=id).filter(
-        Expenditure.date_of_expenditure.between(start, end)).all()
+        category_id=category_id, expenditure_userid=id
+    ).filter(
+        Expenditure.date_of_expenditure.between(start, end)
+    ).all()
 
     total_price = 0
     for expenditure in expenditures:
@@ -68,7 +70,6 @@ def get_budget_per_category(category_id, id):
 def get_total_for_category(cat, lst):
     """ Gets the total amount per category """
 
-    # Set total to 0
     total = 0
     queries = lst
 
