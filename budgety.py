@@ -9,6 +9,7 @@ import os
 import hashlib
 import hmac
 import base64
+from password_verification import hash_pw, check_pw
 
 ##########################################
 # APP SETUP
@@ -37,55 +38,50 @@ db.init_app(app)
 def sign_up():
     """ Sign up form consumption """
     from models import User
+
     name     = request.form.get("name")
     email    = request.form.get("email")
     password = request.form.get("password")
 
-    email_login_query = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email).first()
 
-    # Check if user already exists
-    if email_login_query is None:
+    # User doesn't exist so create an account.
+    if user is None:
         new_user          = User()
         new_user.name     = name
         new_user.email    = email
-        new_user.password = password
+        new_user.password = hash_pw(password)
         db.session.add(new_user)
         db.session.commit()
-        flash('You have successfully signed up')
+        flash('You have successfully signed up.')
         return redirect(url_for('index'))
-
     else:
-        user_existence_check = User.query.filter(
-            and_(User.email == email, User.password == password)
-        ).first()
-        if user_existence_check:
-            flash('This email is already in use.')
-            return redirect(url_for("index"))
+        flash('Email already in use.')
+        return redirect(url_for("index"))
 
 @app.route('/login-form', methods=["POST"])
 def login_form():
-    from models import User
     """ Login form """
-    email = request.form.get("email")
+
+    from models import User
+
+    email    = request.form.get("email")
     password = request.form.get("password")
 
-    email_login_query = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email).first()
     password_login_query = User.query.filter_by(password=password).first()
 
-    if email_login_query is None and password_login_query is None:
-        flash('Error in logging in')
+    #if email_login_query is None or password_login_query is None:
+    if user is None:
+        flash('Wrong email.')
         return redirect(url_for("index"))
-
-    elif email_login_query is None:
-        flash('Error in logging in')
-        return redirect(url_for("index"))
-    elif password_login_query is None:
-        flash('Error in logging in')
-        return redirect(url_for("index"))
-
     else:
-        session['id'] = email_login_query.id
-        return redirect(url_for('dashboard', id=session['id']))
+        if check_pw(user.password, password):
+            session['id'] = user.id
+            return redirect(url_for('dashboard', id=session['id']))
+        else:
+            flash('Wrong password.')
+            return redirect(url_for("index"))
 
 @app.route('/logout', methods=["GET"])
 def logout():
